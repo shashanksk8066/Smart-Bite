@@ -17,7 +17,15 @@ Smart Bite is an intelligent AI-powered nutrition and fitness tracking applicati
    - Automatically detects unhealthy items and provides healthier alternatives.
    - Real-time dashboard showing `Calories Consumed - Calories Burned` against your daily target.
 
-2. **Smart Onboarding**
+2. **Build Your Own Meal (Subway-Style Builder)**
+   - Select and customize ingredients and portion sizes from a curated database covering vegetables, fruits, rice & grains, proteins, dairy, and healthy snacks.
+   - Live interactive plate tray calculates total calories, protein, carbs, fat, and fiber in real-time.
+
+3. **Speech-to-Nutrition (AI Voice Meal Logging)**
+   - Speak naturally into your microphone detailing what you ate and portions (e.g., *"2 boiled eggs, a cup of oatmeal with blueberries, and black coffee"*).
+   - Real-time speech transcription converted into detailed nutritional estimation via Gemini AI.
+
+4. **Smart Onboarding**
    - Collects your body metrics and fitness goals (Weight Loss, Muscle Gain, Maintenance).
    - Uses AI to calculate personalized, scientifically-grounded daily caloric and macronutrient targets.
 

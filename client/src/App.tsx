@@ -12,8 +12,10 @@ import { FloatingAIAssistant } from './components/FloatingAIAssistant';
 import { StreaksPage } from './components/StreaksPage';
 import { LeaderboardPage } from './components/LeaderboardPage';
 import { ActivityPage } from './components/ActivityPage';
+import { BuildYourMeal } from './components/BuildYourMeal';
+import { VoiceMealLogger } from './components/VoiceMealLogger';
 import { FoodAnalysisResult, FoodItem, SavedMeal, UserProfile, ExerciseLog } from './types';
-import { AlertTriangle, RefreshCw, ShieldCheck, Utensils, Sparkles } from 'lucide-react';
+import { AlertTriangle, RefreshCw, ShieldCheck, Utensils, Sparkles, Camera, ChefHat, Mic } from 'lucide-react';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
@@ -24,6 +26,7 @@ export default function App() {
   const [onboardingInitialData, setOnboardingInitialData] = useState<{ name: string; email: string } | null>(null);
 
   // Scanner & App states
+  const [mealLogMode, setMealLogMode] = useState<'scan' | 'build' | 'voice'>('scan');
   const [isLoading, setIsLoading] = useState(false);
   const [currentImage, setCurrentImage] = useState<string | null>(null);
   const [analysisResult, setAnalysisResult] = useState<FoodAnalysisResult | null>(null);
@@ -330,10 +333,48 @@ export default function App() {
 
       {/* Main Container */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* TAB 1: SCANNER */}
+        {/* TAB 1: SCANNER & MEAL BUILDER */}
         {activeTab === 'scan' && (
           <div className="space-y-8">
             {!isLoading && !analysisResult && (
+              <div className="flex p-1.5 bg-slate-200/80 backdrop-blur-sm rounded-2xl max-w-lg mx-auto shadow-inner border border-slate-300/60">
+                <button
+                  onClick={() => setMealLogMode('scan')}
+                  className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-all ${
+                    mealLogMode === 'scan'
+                      ? 'bg-white text-slate-900 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Camera className="w-4 h-4 text-emerald-600" />
+                  <span>Photo Scan</span>
+                </button>
+                <button
+                  onClick={() => setMealLogMode('build')}
+                  className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-all ${
+                    mealLogMode === 'build'
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <ChefHat className="w-4 h-4" />
+                  <span>Build Meal</span>
+                </button>
+                <button
+                  onClick={() => setMealLogMode('voice')}
+                  className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-all ${
+                    mealLogMode === 'voice'
+                      ? 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Mic className="w-4 h-4" />
+                  <span>Speak / Voice</span>
+                </button>
+              </div>
+            )}
+
+            {!isLoading && !analysisResult && mealLogMode === 'scan' && (
               <ImageUploader
                 onImageSelected={handleAnalyzeFood}
                 isLoading={isLoading}
@@ -343,6 +384,34 @@ export default function App() {
                 todayCarbs={todayCarbs}
                 todayFat={todayFat}
                 todayBurned={todayBurned}
+              />
+            )}
+
+            {!isLoading && !analysisResult && mealLogMode === 'build' && (
+              <BuildYourMeal
+                onCompleteMeal={(customAnalysis) => {
+                  setAnalysisResult(customAnalysis);
+                  setCurrentImage(null);
+                  setIsCurrentMealSaved(false);
+                }}
+                dailyGoalCalories={dailyGoalCalories}
+                todayCalories={todayCalories}
+                todayProtein={todayProtein}
+                todayCarbs={todayCarbs}
+                todayFat={todayFat}
+              />
+            )}
+
+            {!isLoading && !analysisResult && mealLogMode === 'voice' && (
+              <VoiceMealLogger
+                onAnalysisComplete={(voiceAnalysis) => {
+                  setAnalysisResult(voiceAnalysis);
+                  setCurrentImage(null);
+                  setIsCurrentMealSaved(false);
+                }}
+                userProfile={currentUser}
+                dailyGoalCalories={dailyGoalCalories}
+                todayCalories={todayCalories}
               />
             )}
 
@@ -369,7 +438,7 @@ export default function App() {
             {!isLoading && analysisResult && (
               <div className="space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {currentImage && (
+                  {currentImage ? (
                     <div className="lg:col-span-1 bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
                       <div className="relative rounded-xl overflow-hidden border border-slate-200 group h-64 sm:h-72">
                         <img
@@ -413,9 +482,46 @@ export default function App() {
                         </div>
                       )}
                     </div>
+                  ) : (
+                    <div className="lg:col-span-1 bg-gradient-to-br from-emerald-950 via-slate-900 to-slate-950 border border-emerald-500/30 rounded-2xl p-6 shadow-sm flex flex-col justify-between text-white relative overflow-hidden">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+                      <div className="space-y-4 relative z-10">
+                        <div className="p-3 bg-emerald-500/20 text-emerald-400 rounded-2xl w-fit border border-emerald-500/30">
+                          {mealLogMode === 'voice' ? (
+                            <Mic className="w-8 h-8 text-teal-300" />
+                          ) : (
+                            <ChefHat className="w-8 h-8 text-emerald-400" />
+                          )}
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-extrabold text-emerald-400 uppercase tracking-widest block mb-1">
+                            {mealLogMode === 'voice' ? 'AI Voice Recognition' : 'Custom Handcrafted Meal'}
+                          </span>
+                          <h3 className="text-lg font-black text-white leading-tight">
+                            {analysisResult.description}
+                          </h3>
+                        </div>
+                        <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-800 flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Meal Type</span>
+                          <span className="text-xs font-extrabold text-emerald-400 capitalize bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                            {analysisResult.mealType}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400 relative z-10">
+                        <span>{mealLogMode === 'voice' ? 'Spoken speech estimation' : 'Subway-style portion tray'}</span>
+                        <button
+                          onClick={handleResetScan}
+                          className="text-emerald-400 font-bold hover:underline flex items-center gap-1"
+                        >
+                          <RefreshCw className="w-3 h-3" /> Log Another Meal
+                        </button>
+                      </div>
+                    </div>
                   )}
 
-                  <div className={currentImage ? "lg:col-span-2" : "lg:col-span-3"}>
+                  <div className="lg:col-span-2">
                     <NutritionalSummary
                       analysis={analysisResult}
                       onSaveMeal={handleSaveMeal}
